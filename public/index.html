@@ -541,7 +541,7 @@
             }
 
             try {
-                const response = await fetch('http://localhost:3000/api/login', {
+                const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username: user, password: pass })
@@ -786,7 +786,7 @@ document.getElementById('displayName').innerHTML = `<span class="truncate w-full
         // ================= GIAO TIẾP VỚI API NHÂN SỰ CỦA NODE.JS =================
         window.loadUsersList = async function() {
             try {
-                const response = await fetch('http://localhost:3000/api/users');
+                const response = await fetch('/api/users');
                 const result = await response.json();
                 
                 if(result.success) {
@@ -838,7 +838,7 @@ document.getElementById('displayName').innerHTML = `<span class="truncate w-full
             }
 
             try {
-                const response = await fetch('http://localhost:3000/api/users', {
+                const response = await fetch('/api/users', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ newUsername, newPass, newName, role })
                 });
@@ -864,7 +864,7 @@ document.getElementById('displayName').innerHTML = `<span class="truncate w-full
                 `Bạn đang thực hiện thu hồi vĩnh viễn quyền truy cập của nhân sự: ${username}. Hành động này không thể hoàn tác.`, 
                 async () => {
                     try {
-                        const response = await fetch(`http://localhost:3000/api/users/${username}`, { method: 'DELETE' });
+                        const response = await fetch(`/api/users/${username}`, { method: 'DELETE' });
                         const result = await response.json();
                         if(result.success) {
                             showToast(`Đã thu hồi tài khoản ${username}.`, "success");
@@ -917,7 +917,7 @@ document.getElementById('displayName').innerHTML = `<span class="truncate w-full
             optimizeBtn.innerHTML = `<svg class="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Đang tinh chỉnh...`;
             optimizeBtn.disabled = true;
             try {
-                const response = await fetch('http://localhost:3000/api/optimize-prompt', {
+                const response = await fetch('/api/optimize-prompt', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ topic, tones: tone })
                 });
@@ -948,7 +948,7 @@ document.getElementById('displayName').innerHTML = `<span class="truncate w-full
             renderBtn.disabled = true;
 
             try {
-                const response = await fetch('http://localhost:3000/api/generate-scripts', {
+                const response = await fetch('/api/generate-scripts', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ topic, count, tones: tone, format: format })
                 });
