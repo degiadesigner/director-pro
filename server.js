@@ -2,22 +2,19 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
-// Mở cửa cho thư mục chứa giao diện
-app.use(express.static(path.join(__dirname, 'public')));
 const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require('@google/generative-ai');
 
+// 1. PHẢI SINH RA APP ĐẦU TIÊN
 const app = express();
 
-// =================== CẤU HÌNH MẠNG VÀ BẢO MẬT (PHẢI THEO ĐÚNG THỨ TỰ NÀY) ===================
-// 1. Mở cửa khẩu cho mọi trình duyệt
+// 2. CẤU HÌNH MẠNG VÀ BẢO MẬT 
 app.use(cors({ origin: '*', methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'] }));
-// 2. Kính lúp đọc hiểu dữ liệu JSON (RẤT QUAN TRỌNG)
 app.use(express.json());
-// 3. Cho phép đọc file tĩnh (Giao diện Web)
-app.use(express.static(__dirname)); 
 
+// 3. MỞ CỬA CHO GIAO DIỆN Ở THƯ MỤC 'public'
+app.use(express.static(path.join(__dirname, 'public')));
 
-// =================== 1. HỆ THỐNG DATABASE TÀI KHOẢN (LƯU LẠI CHUẨN CŨ) ===================
+// =================== 1. HỆ THỐNG DATABASE TÀI KHOẢN ===================
 const USERS_FILE = path.join(__dirname, 'users.json');
 if (!fs.existsSync(USERS_FILE)) {
     const defaultUsers = { "admin": { pass: "123456", name: "MinhTT (Boss)", icon: "👑", role: "admin" } };
@@ -69,34 +66,31 @@ const model = genAI.getGenerativeModel({
         { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE }
     ]
 });
-// =================== ĐỘNG CƠ TỐI ƯU LÁCH LUẬT AI (ĐÃ NÂNG CẤP) ===================
+
+// =================== ĐỘNG CƠ TỐI ƯU LÁCH LUẬT AI ===================
 app.post('/api/optimize-prompt', async (req, res) => {
     try {
         const { topic, tones } = req.body;
         
         const optimizePrompt = `
         Bạn là Đạo diễn kịch bản Viral TikTok thực chiến. Nhiệm vụ: Viết lại ý tưởng dưới đây thành 1 Lệnh (Prompt) NGẮN GỌN (dưới 80 chữ) để chỉ đạo AI khác viết kịch bản.
-        
         Ý tưởng gốc: "${topic}"
         Tone/Phong cách người dùng chọn: ${tones}
-
         LUẬT BẮT BUỘC (NẾU VI PHẠM SẼ BỊ XÓA BỎ):
         1. SIÊU NGẮN GỌN: Đi thẳng vào kịch bản, bối cảnh, nhân vật. Tuyệt đối KHÔNG viết thêm các câu đạo lý như "ngôn ngữ phù hợp", "tính giáo dục cao", "không miêu tả nguy hiểm"... (Tôi đã lo phần an toàn, bạn không cần nhắc lại).
-        2. ÉP BUỘC TÍNH HÀI HƯỚC/CHÂM BIẾM: Nếu người dùng chọn Hài hước, bạn PHẢI đưa ra concept buồn cười. Áp dụng "Hài tình huống" (Nghiệp quật, làm lố sự chủ quan ngớ ngẩn của nhân vật, đồ vật phản chủ...). Vui nhộn, giải trí là ưu tiên số 1 để giữ chân khán giả, thông điệp sẽ được chèn khéo léo vào giây cuối cùng.
+        2. ÉP BUỘC TÍNH HÀI HƯỚC/CHÂM BIẾM: Nếu người dùng chọn Hài hước, bạn PHẢI đưa ra concept buồn cười. Áp dụng "Hài tình huống". Vui nhộn, giải trí là ưu tiên số 1 để giữ chân khán giả, thông điệp sẽ được chèn khéo léo vào giây cuối cùng.
         3. KỊCH TÍNH: Thêm cú twist bất ngờ ở cuối.
         4. Trả về đúng 1 đoạn văn bản chỉ đạo. Không giải thích lăng nhăng.
         `;
 
         const result = await model.generateContent(optimizePrompt);
-        let optimizedText = result.response.text().trim();
-
-        res.json({ success: true, data: optimizedText });
+        res.json({ success: true, data: result.response.text().trim() });
     } catch (error) {
         console.error("Lỗi động cơ tối ưu:", error.message);
         res.status(500).json({ success: false, message: error.message });
     }
 });
-// =================================================================
+
 // =================================================================
 app.post('/api/generate-scripts', async (req, res) => {
     try {
@@ -151,5 +145,6 @@ app.post('/api/generate-scripts', async (req, res) => {
     }
 });
 
-const PORT = 3000;
-app.listen(PORT, () => console.log(`🔥 Director.AI V9 đã sẵn sàng tại http://localhost:${PORT}`));
+// THAY ĐỔI CỰC QUAN TRỌNG ĐỂ RENDER CHẠY ĐƯỢC
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🔥 Director.AI V9 đã sẵn sàng tại cổng ${PORT}`));
