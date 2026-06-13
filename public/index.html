@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Director PRO | Nền tảng Sáng tạo Điện ảnh</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, updateDoc, deleteDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, deleteObject } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-storage.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyACUuhCBA49Wwy4wiqcicj7hLQ3rR28Yqw",
+            authDomain: "director-ai-minhtt.firebaseapp.com",
+            projectId: "director-ai-minhtt",
+            storageBucket: "director-ai-minhtt.firebasestorage.app",
+            messagingSenderId: "950061583013",
+            appId: "1:950061583013:web:86fbd5bc35374c32dfdb4c",
+            measurementId: "G-H67DX4V52R"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+        
+        window.db = db;
+        window.storage = storage;
+        window.doc = doc;
+        window.setDoc = setDoc;
+        window.getDoc = getDoc;
+        window.ref = ref;
+        window.uploadBytes = uploadBytes;
+        window.deleteObject = deleteObject;
+    </script>
+
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: radial-gradient(circle at top, #111827 0%, #030712 100%);
+            color: #e2e8f0; 
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        
+        .tone-checkbox:checked + span { 
+            background: linear-gradient(to right, #2563eb, #4f46e5);
+            border-color: transparent; 
+            color: #ffffff; 
+            box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.39);
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden selection:bg-indigo-500/30">
+
+    <div id="loginScreen" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#030712]">
+        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20 pointer-events-none"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-600/20 rounded-full blur-[100px] pointer-events-none"></div>
+        
+        <div class="glass-panel p-10 rounded-3xl w-full max-w-md text-center relative z-10">
+            <div class="w-16 h-16 mx-auto bg-gradient-to-br from-indigo-500 to-blue-500 rounded-2xl flex items-center justify-center font-bold text-white text-3xl mb-5 shadow-lg shadow-indigo-500/30">D</div>
+            <h1 class="text-2xl font-extrabold tracking-tight text-white">DIRECTOR <span class="text-indigo-400">PRO</span></h1>
+            <p class="text-sm text-slate-400 mt-1.5 mb-8">Nền tảng Tự động hóa Sáng tạo</p>
+            
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1.5 ml-1">Tài khoản</label>
+                    <input type="text" id="usernameInput" placeholder="Nhập tên đăng nhập" class="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl p-3.5 text-white outline-none focus:border-indigo-500 transition-all placeholder-slate-600">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1.5 ml-1">Mật khẩu</label>
+                    <input type="password" id="passwordInput" placeholder="••••••••" class="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl p-3.5 text-white outline-none focus:border-indigo-500 transition-all placeholder-slate-600" onkeypress="if(event.key === 'Enter') loginProcess()">                
+                </div>
+                
+                <div class="flex items-center mt-3 mb-2 px-1">
+                    <input type="checkbox" id="rememberMe" class="w-4 h-4 text-indigo-500 bg-slate-900 border-slate-700 rounded focus:ring-indigo-500 focus:ring-offset-slate-900 cursor-pointer transition">
+                    <label for="rememberMe" class="ml-2 text-sm text-slate-400 cursor-pointer select-none hover:text-slate-300 transition">Duy trì đăng nhập</label>
+                </div>
+
+                <button onclick="loginProcess()" id="loginBtn" class="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-indigo-500/25 mt-2 active:scale-[0.98]">
+                    Đăng nhập hệ thống
+                </button>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-8 font-medium tracking-wide">© 2026 Director PRO. Crafted by <span class="text-indigo-400 font-bold">MinhTT</span>.</p>
+        </div>
+    </div>
+
+    <div id="appWorkspace" class="w-full h-full flex hidden relative">
+        
+        <aside class="w-64 bg-slate-900/40 border-r border-white/[0.05] flex flex-col h-full shrink-0 z-20 backdrop-blur-md">
+            <div class="h-20 flex items-center px-8 border-b border-white/[0.05]">
+                <h1 class="font-extrabold text-white text-xl tracking-tight">DIRECTOR <span class="text-indigo-400">PRO</span></h1>
+            </div>
+            <nav class="flex-1 px-4 py-8 space-y-2 relative">
+                <p class="px-4 text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Khu Vực Làm Việc</p>
+                <a href="#" onclick="switchTab('studio')" id="menu-studio" class="flex items-center px-4 py-3 bg-indigo-500/10 text-indigo-400 rounded-xl font-medium transition-all group">
+                    <svg class="w-5 h-5 mr-3 opacity-70 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    Xưởng Sáng Tạo
+                </a>
+                <a href="#" onclick="switchTab('vault')" id="menu-vault" class="flex items-center px-4 py-3 text-slate-400 hover:text-slate-200 hover:bg-white/[0.03] rounded-xl font-medium transition-all group">
+                    <svg class="w-5 h-5 mr-3 opacity-70 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+                    Thư Viện Kịch Bản
+                </a>
+                
+                <a href="#" onclick="switchTab('trash')" id="menu-trash" class="flex items-center px-4 py-3 text-slate-400 hover:text-slate-200 hover:bg-white/[0.03] rounded-xl font-medium transition-all group">
+                    <svg class="w-5 h-5 mr-3 opacity-70 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    Lưu Trữ Tạm Xóa
+                </a>
+                
+                <div id="adminArea" class="hidden">
+                    <p class="px-4 text-xs font-bold text-indigo-400/50 uppercase tracking-wider mt-8 mb-4">Quản Trị Hệ Thống</p>
+                    <a href="#" onclick="switchTab('users')" id="menu-users" class="flex items-center px-4 py-3 text-slate-400 hover:text-slate-200 hover:bg-white/[0.03] rounded-xl font-medium transition-all group">
+                        <svg class="w-5 h-5 mr-3 opacity-70 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        Phân Quyền Nhân Sự
+                    </a>
+                </div>
+            </nav>
+           <div class="mt-auto px-4 py-5 w-full border-t border-white/[0.05] bg-gradient-to-t from-[#030712] to-transparent">
+                <div class="bg-white/[0.02] border border-white/[0.05] p-2.5 rounded-2xl flex items-center justify-between hover:bg-white/[0.04] transition-colors mb-4 shadow-sm">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-9 h-9 shrink-0 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        </div>
+                        <div id="displayName" class="flex flex-col items-start gap-1 font-bold text-white text-sm min-w-0 truncate pr-2">
+                            Người Dùng
+                        </div>
+                    </div>
+                    <button onclick="logout()" class="p-2 shrink-0 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all" title="Đăng xuất">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    </button>
+                </div>
+
+                <div class="text-center">
+                    <p class="text-[9px] text-slate-600 font-bold uppercase tracking-[0.2em]">© 2026 MINHTT STUDIO</p>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col overflow-hidden relative">
+            <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+            
+            <div id="tab-studio" class="flex-1 overflow-y-auto p-10 relative z-10">
+                <div class="max-w-[1500px] mx-auto w-full grid grid-cols-12 gap-10">
+                    <div class="col-span-12 xl:col-span-7 space-y-8">
+                        <div>
+                            <h2 class="text-3xl font-extrabold text-white tracking-tight">Xưởng Sáng Tạo</h2>
+                            <p class="text-slate-400 mt-2 text-sm">Biến ý tưởng thô thành kịch bản chuyên nghiệp chỉ trong tích tắc.</p>
+                        </div>
+                        <div class="space-y-3">
+                            <label class="block text-sm font-semibold text-slate-300">Ý tưởng & Nội dung chính</label>
+                            <div class="relative group">
+                                <div class="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-2xl blur opacity-10 group-hover:opacity-20 transition duration-500"></div>
+                                <textarea id="promptInput" class="relative w-full bg-[#0B0D17]/80 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 text-slate-200 focus:outline-none focus:border-indigo-500 min-h-[220px] text-base leading-relaxed placeholder-slate-600 resize-y shadow-inner" placeholder="Mô tả bối cảnh, thông điệp hoặc câu chuyện bạn muốn truyền tải..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <button id="optimizeBtn" class="w-full px-4 py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-sm font-semibold flex justify-center items-center gap-2 transition-all border border-slate-700 shadow-sm mb-6">
+                            <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            Tinh Chỉnh Lời Văn Hợp Lệ Trước Khi Chạy
+                        </button>
+                        
+                        <div class="glass-panel rounded-2xl p-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
+                                    Tài liệu tham khảo
+                                </h3>
+                                <span class="text-[11px] bg-slate-800/50 text-slate-400 px-2.5 py-1 rounded-md font-medium border border-slate-700/50">Không lưu trữ lâu dài</span>
+                            </div>
+                            <input type="file" id="fileUpload" class="hidden" convertible multiple>
+                            <button onclick="document.getElementById('fileUpload').click()" class="w-full px-4 py-4 border border-dashed border-slate-600 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:border-indigo-400 hover:bg-indigo-500/5 transition-all flex flex-col items-center justify-center gap-2">
+                                <svg class="w-6 h-6 mb-1 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                                Nhấn để đính kèm File (PDF, Word, TXT)
+                            </button>
+                            <div id="fileList" class="mt-4 space-y-2"></div>
+                        </div>
+                        
+                        <div id="resultsArea" class="hidden pt-6">
+                            <div class="flex items-center gap-4 mb-6">
+                                <h3 class="text-xl font-bold text-white">Thành Phẩm Sáng Tạo</h3>
+                                <div class="h-px flex-1 bg-gradient-to-r from-slate-800 to-transparent"></div>
+                            </div>
+                            <div id="cardsGrid" class="flex flex-col gap-4"></div>
+                        </div>
+                    </div>
+
+                    <div class="col-span-12 xl:col-span-5 relative">
+                        <div class="sticky top-10 glass-panel rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.4)] border-t border-white/[0.08]">
+                            <h3 class="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                                <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                                Bảng Cấu Hình
+                            </h3>
+                            
+                     <div class="space-y-7">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-400 mb-2.5 uppercase tracking-wider">Định dạng xuất bản</label>
+                                    <div class="relative">
+                                        <select id="formatSelect" class="w-full bg-[#0B0D17] border border-slate-700/50 rounded-xl py-3.5 pl-4 pr-10 text-white font-medium appearance-none cursor-pointer outline-none hover:border-slate-500 transition-colors">
+                                            <option value="Video Ngắn (TikTok/Reels/Shorts 15-60s)">📱 Video Dọc Siêu Tốc (Reels/TikTok 15-60s)</option>
+                                            <option value="Video Dài (YouTube/Facebook 3-10 phút)">💻 Video Ngang Tiêu Chuẩn (YouTube 3-10p)</option>
+                                            <option value="TVC Quảng cáo thương mại (15-30s)">🎬 TVC Quảng Cáo Chuyên Nghiệp (15-30s)</option>
+                                            <option value="Review / Trải nghiệm sản phẩm (1-3 phút)">📦 Video Review / Đập hộp (1-3p)</option>
+                                            <option value="Phim Ngắn Điện Ảnh (Short Film 5-15 phút)">🎥 Phim Ngắn Nghệ Thuật (5-15p)</option>
+                                            <option value="Podcast / Talkshow chia sẻ (10-20 phút)">🎙️ Podcast / Talkshow Có Hình (10-20p)</option>
+                                        </select>
+                                        <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-slate-400">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-[11px] font-bold text-indigo-400 mb-3 uppercase tracking-wider">Màu sắc câu chuyện (Chọn nhiều)</label>
+                                    <div class="flex flex-wrap gap-2.5" id="toneMixer">
+                                        <label class="cursor-pointer">
+                                            <input type="checkbox" value="Tuyên truyền, ý nghĩa, chính thống" class="hidden tone-checkbox">
+                                            <span class="px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-xl text-sm font-medium text-slate-300 block hover:bg-slate-800 transition-all">🎙️ Chính thống</span>
+                                        </label>
+                                        <label class="cursor-pointer">
+                                            <input type="checkbox" value="Hài hước, tình huống trớ trêu, giải trí" class="hidden tone-checkbox">
+                                            <span class="px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-xl text-sm font-medium text-slate-300 block hover:bg-slate-800 transition-all">🎭 Hài tình huống</span>
+                                        </label>
+                                        <label class="cursor-pointer">
+                                            <input type="checkbox" value="Kịch tính, cao trào, giật gân, plot twist" class="hidden tone-checkbox">
+                                            <span class="px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-xl text-sm font-medium text-slate-300 block hover:bg-slate-800 transition-all">⚡ Kịch tính cao</span>
+                                        </label>
+                                        
+                                        <label class="cursor-pointer">
+                                            <input type="checkbox" value="Chữa lành, truyền cảm hứng, nhẹ nhàng, storytelling" class="hidden tone-checkbox">
+                                            <span class="px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-xl text-sm font-medium text-slate-300 block hover:bg-slate-800 transition-all">🌱 Chữa lành / Cảm hứng</span>
+                                        </label>
+                                        <label class="cursor-pointer">
+                                            <input type="checkbox" value="Chuyên gia, đánh giá khách quan, review chân thực, phân tích sâu" class="hidden tone-checkbox">
+                                            <span class="px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-xl text-sm font-medium text-slate-300 block hover:bg-slate-800 transition-all">🧐 Review / Chuyên gia</span>
+                                        </label>
+                                        <label class="cursor-pointer">
+                                            <input type="checkbox" value="Drama, bắt trend, giật gân mạng xã hội, nhịp độ cực nhanh" class="hidden tone-checkbox">
+                                            <span class="px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-xl text-sm font-medium text-slate-300 block hover:bg-slate-800 transition-all">🔥 Drama / Bắt Trend</span>
+                                        </label>
+                                        <label class="cursor-pointer">
+                                            <input type="checkbox" value="Nghệ thuật, cảm xúc lắng đọng, điện ảnh" class="hidden tone-checkbox">
+                                            <span class="px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-xl text-sm font-medium text-slate-300 block hover:bg-slate-800 transition-all">🎥 Điện ảnh nghệ thuật</span>
+                                        </label>
+                                        <label class="cursor-pointer">
+                                            <input type="checkbox" value="Bí ẩn, kinh dị tâm lý, hồi hộp, rùng rợn" class="hidden tone-checkbox">
+                                            <span class="px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-xl text-sm font-medium text-slate-300 block hover:bg-slate-800 transition-all">👁️ Bí ẩn / Tâm linh</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="h-px w-full bg-slate-800/80 my-4"></div>
+
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-400 mb-2.5 uppercase tracking-wider">Số lượng bản thảo & Xuất bản</label>
+                                    <div class="flex gap-3">
+                                        <div class="w-24 shrink-0">
+                                            <input id="countInput" type="number" value="1" min="1" max="10" class="w-full bg-[#0B0D17] border border-slate-700/50 rounded-xl py-3.5 text-white text-center font-bold text-lg outline-none focus:border-indigo-500 transition-colors">
+                                        </div>
+                                        <button id="renderBtn" class="flex-1 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/25 transition-all flex justify-center items-center gap-2 active:scale-[0.98]">
+                                            Khởi Tạo Kịch Bản
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-vault" class="flex-1 overflow-y-auto p-10 relative hidden z-10">
+                <div class="max-w-[1500px] mx-auto w-full">
+                    <div class="flex justify-between items-end mb-10 border-b border-white/[0.05] pb-6">
+                        <div>
+                            <h2 class="text-3xl font-extrabold text-white tracking-tight">Thư Viện Kịch Bản</h2>
+                            <p class="text-slate-400 mt-2 text-sm">Lưu trữ toàn bộ tài sản trí tuệ đã được tạo ra, sắp xếp theo trình tự thời gian.</p>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="relative">
+                                <input type="date" id="vaultDatePicker" class="bg-[#0B0D17] border border-slate-700/50 p-3 rounded-xl text-white font-semibold outline-none text-sm cursor-pointer focus:border-indigo-500 transition-colors">
+                            </div>
+                            <button id="bulkDeleteVaultBtn" onclick="bulkDeleteVault()" class="px-5 py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-sm font-semibold rounded-xl transition-all flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                Dọn Sạch Ngày Này
+                            </button>
+                        </div>
+                    </div>
+                    <div id="vaultGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+                </div>
+            </div>
+
+            <div id="tab-trash" class="flex-1 overflow-y-auto p-10 relative hidden z-10">
+                <div class="max-w-[1500px] mx-auto w-full">
+                    <div class="flex justify-between items-end mb-10 border-b border-white/[0.05] pb-6">
+                        <div>
+                            <h2 class="text-3xl font-extrabold text-red-400 tracking-tight">Lưu Trữ Tạm Xóa</h2>
+                            <p class="text-slate-400 mt-2 text-sm">Các kịch bản đã hủy. Dữ liệu có thể được khôi phục hoặc xóa vĩnh viễn khỏi máy chủ.</p>
+                        </div>
+                        <button id="emptyTrashBtn" onclick="emptyTrashConfirm()" class="px-5 py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-red-500/20 active:scale-[0.98]">
+                            Tiêu Hủy Toàn Bộ
+                        </button>
+                    </div>
+                    <div id="trashGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+                </div>
+            </div>
+
+            <div id="tab-users" class="flex-1 overflow-y-auto p-10 relative hidden z-10">
+                <div class="max-w-[1500px] mx-auto w-full grid grid-cols-12 gap-10">
+                    <div class="col-span-12 lg:col-span-4">
+                        <h2 class="text-3xl font-extrabold text-white tracking-tight mb-2">Quản Trị Nhân Sự</h2>
+                        <p class="text-slate-400 text-sm mb-8">Cấp quyền và quản lý tài khoản truy cập nội bộ.</p>
+                        
+                        <div class="glass-panel p-6 rounded-2xl space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1.5 ml-1">Tên đăng nhập (ID)</label>
+                                <input type="text" id="newUserId" class="w-full bg-[#0B0D17] border border-slate-700/50 rounded-xl p-3 text-white outline-none focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1.5 ml-1">Tên hiển thị</label>
+                                <input type="text" id="newUserName" class="w-full bg-[#0B0D17] border border-slate-700/50 rounded-xl p-3 text-white outline-none focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1.5 ml-1">Mật khẩu cấp phát</label>
+                                <input type="password" id="newUserPass" class="w-full bg-[#0B0D17] border border-slate-700/50 rounded-xl p-3 text-white outline-none focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1.5 ml-1">Phân quyền</label>
+                                <select id="newUserRole" class="w-full bg-[#0B0D17] border border-slate-700/50 rounded-xl p-3 text-white outline-none focus:border-indigo-500">
+                                    <option value="employee">Nhân Viên (Chỉ tạo & xem)</option>
+                                    <option value="manager">Quản Lý (Được quyền xóa)</option>
+                                    <option value="admin">Quản Trị Tối Cao (Admin)</option>
+                                </select>
+                            </div>
+                            <button onclick="createNewUser()" class="w-full mt-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-indigo-500/25">
+                                Cấp Tài Khoản Mới
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-span-12 lg:col-span-8 pt-16">
+                        <div class="flex items-center gap-4 mb-6">
+                            <h3 class="text-xl font-bold text-white">Danh Sách Thành Viên</h3>
+                            <button onclick="loadUsersList()" class="text-xs bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg hover:bg-slate-700 transition">Làm mới</button>
+                            <div class="h-px flex-1 bg-gradient-to-r from-slate-800 to-transparent"></div>
+                        </div>
+                        <div id="usersGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <div id="scriptModal" class="fixed inset-0 z-50 bg-[#030712]/90 backdrop-blur-md hidden flex items-center justify-center p-4 sm:p-8">
+        <div class="glass-panel w-full max-w-6xl max-h-[90vh] rounded-3xl flex flex-col overflow-hidden shadow-2xl border border-white/10">
+            <div class="flex justify-between items-start p-8 bg-slate-900/50 border-b border-white/[0.05]">
+                <div class="w-3/4 pr-4">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span id="modalConcept" class="px-3 py-1 bg-indigo-500/20 text-indigo-300 text-xs font-bold rounded-md uppercase tracking-wider border border-indigo-500/20">Định dạng</span>
+                    </div>
+                    <h2 id="modalTitle" class="text-2xl font-extrabold text-white leading-tight">Tên Tác Phẩm</h2>
+                    <p id="modalSummary" class="text-sm text-slate-400 mt-2 leading-relaxed">...</p>
+                </div>
+                <div class="flex gap-3 shrink-0">
+                    <button id="downloadBtn" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-sm transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Tải văn bản
+                    </button>
+                    <button onclick="document.getElementById('scriptModal').classList.add('hidden')" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-sm transition-colors">Đóng</button>
+                </div>
+            </div>
+            
+            <div class="p-0 overflow-y-auto flex-1 bg-[#090A0F]">
+                <table class="w-full text-left text-sm text-slate-300">
+                    <thead class="sticky top-0 bg-[#111827] border-b border-white/[0.05] shadow-sm z-10">
+                        <tr class="text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                            <th class="p-5 w-16 text-center border-r border-white/[0.02]">Cảnh</th>
+                            <th class="p-5 w-1/5 border-r border-white/[0.02]">Góc Máy & Ánh Sáng</th>
+                            <th class="p-5 w-2/5 border-r border-white/[0.02]">Hành Động & Biểu Cảm</th>
+                            <th class="p-5 w-auto border-r border-white/[0.02]">Âm Thanh & Thoại</th>
+                            <th class="p-5 w-20 text-center">Thời Lượng</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modalTbody" class="divide-y divide-white/[0.02]"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="customToast" class="fixed top-8 left-1/2 transform -translate-x-1/2 z-[200] flex items-center justify-center pointer-events-none opacity-0 transition-all duration-300 hidden translate-y-[-20px]">
+        <div class="glass-panel bg-slate-900/90 rounded-2xl p-4 min-w-[340px] flex items-center gap-4 shadow-[0_10_40px_rgba(79,70,229,0.3)]">
+            <div id="toastIcon" class="text-xl bg-indigo-500/20 text-indigo-400 p-2.5 rounded-xl border border-indigo-500/30 flex items-center justify-center">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <div class="text-left flex-1">
+                <h3 id="toastTitle" class="text-[11px] font-extrabold text-indigo-400 uppercase tracking-widest mb-0.5">Thông Báo</h3>
+                <p id="toastMessage" class="text-xs text-slate-300 font-medium leading-snug">Đang xử lý...</p>
+            </div>
+        </div>
+    </div>
+<div id="customConfirm" class="fixed inset-0 z-[300] bg-[#030712]/80 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        </div>
+    <script>
+        const renderBtn = document.getElementById('renderBtn');
+        const resultsArea = document.getElementById('resultsArea');
+        const cardsGrid = document.getElementById('cardsGrid');
+        const scriptModal = document.getElementById('scriptModal');
+        const fileUpload = document.getElementById('fileUpload');
+        const fileList = document.getElementById('fileList');
+        const promptInput = document.getElementById('promptInput');
+        const countInput = document.getElementById('countInput');
+        const optimizeBtn = document.getElementById('optimizeBtn');
+
+        let generatedScripts = []; 
+        let currentViewingIndex = 0;
+        let attachedFiles = []; 
+        let currentVaultScripts = [];
+        let currentTrashScripts = [];
+
+        window.showToast = function(message, type = 'success') {
+            const toast = document.getElementById('customToast');
+            document.getElementById('toastMessage').innerText = message;
+            document.getElementById('toastTitle').innerText = type === 'success' ? 'HỆ THỐNG XÁC NHẬN' : 'THÔNG BÁO LỖI';
+            
+            const iconSvg = type === 'success' ? '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>' : '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>';
+            document.getElementById('toastIcon').innerHTML = iconSvg;
+            document.getElementById('toastIcon').className = type === 'success' ? 'text-xl bg-indigo-500/20 text-indigo-400 p-2.5 rounded-xl border border-indigo-500/30 flex items-center justify-center' : 'text-xl bg-red-500/20 text-red-400 p-2.5 rounded-xl border border-red-500/30 flex items-center justify-center';
+            document.getElementById('toastTitle').className = type === 'success' ? 'text-[11px] font-extrabold text-indigo-400 uppercase tracking-widest mb-0.5' : 'text-[11px] font-extrabold text-red-400 uppercase tracking-widest mb-0.5';
+            
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.remove('opacity-0', 'translate-y-[-20px]');
+                toast.classList.add('opacity-100', 'translate-y-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-[-20px]');
+                setTimeout(() => toast.classList.add('hidden'), 300);
+            }, 4000); 
+        }
+// Bật bảng xác nhận xịn xò
+        window.showConfirm = function(title, message, callback) {
+            const modal = document.getElementById('customConfirm');
+            const box = document.getElementById('customConfirmBox');
+            document.getElementById('confirmTitle').innerText = title;
+            document.getElementById('confirmMessage').innerText = message;
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                box.classList.remove('scale-95'); box.classList.add('scale-100');
+            }, 10);
+
+            // Nếu ấn Đồng ý, nó tắt bảng và chạy tiếp lệnh Xóa
+            document.getElementById('confirmActionBtn').onclick = function() {
+                closeCustomConfirm();
+                callback();
+            };
+        };
+
+        // Tắt bảng xác nhận
+        window.closeCustomConfirm = function() {
+            const modal = document.getElementById('customConfirm');
+            const box = document.getElementById('customConfirmBox');
+            modal.classList.add('opacity-0');
+            box.classList.remove('scale-100'); box.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        };
+        // ================= CƠ CHẾ PHÂN QUYỀN (RBAC) LÕI =================
+        function applyRoleRestrictions(role) {
+            // Mặc định hiện tất cả (dành cho Admin)
+            document.getElementById('menu-trash').classList.remove('hidden');
+            document.getElementById('adminArea').classList.remove('hidden');
+            document.getElementById('bulkDeleteVaultBtn').classList.remove('hidden');
+            document.getElementById('emptyTrashBtn').classList.remove('hidden');
+
+            if (role === 'employee') {
+                // Nhân viên: Không Thùng rác, Không Nhân sự, Không Dọn sạch Vault
+                document.getElementById('menu-trash').classList.add('hidden');
+                document.getElementById('adminArea').classList.add('hidden');
+                document.getElementById('bulkDeleteVaultBtn').classList.add('hidden');
+            } 
+            else if (role === 'manager') {
+                // Quản lý: Có thùng rác nhưng không được Dọn sạch hoàn toàn, Không Nhân sự
+                document.getElementById('adminArea').classList.add('hidden');
+                document.getElementById('bulkDeleteVaultBtn').classList.add('hidden');
+                document.getElementById('emptyTrashBtn').classList.add('hidden');
+            }
+        }
+
+        window.switchTab = function(tabId) {
+            ['studio', 'vault', 'trash', 'users'].forEach(t => document.getElementById(`tab-${t}`).classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            ['studio', 'vault', 'trash', 'users'].forEach(t => {
+                const menuEl = document.getElementById(`menu-${t}`);
+                if (menuEl) {
+                    if (t === tabId) {
+                        menuEl.className = "flex items-center px-4 py-3 bg-indigo-500/10 text-indigo-400 rounded-xl font-medium transition-all group";
+                    } else {
+                        menuEl.className = "flex items-center px-4 py-3 text-slate-400 hover:text-slate-200 hover:bg-white/[0.03] rounded-xl font-medium transition-all group";
+                    }
+                }
+            });
+
+            localStorage.setItem('activeTab', tabId);
+
+            if(tabId === 'vault') {
+                const picker = document.getElementById('vaultDatePicker');
+                if(!picker.value) picker.value = new Date().toISOString().split('T')[0];
+                loadVaultData(picker.value);
+            }
+            if(tabId === 'trash') loadTrashData();
+            if(tabId === 'users') loadUsersList();
+        }
+
+        window.loginProcess = async function(isAuto = false) {
+            const user = document.getElementById('usernameInput').value.trim();
+            const pass = document.getElementById('passwordInput').value.trim();
+            const remember = document.getElementById('rememberMe').checked;
+
+            if (!user || !pass) { 
+                if(!isAuto) showToast("Vui lòng cung cấp đủ thông tin định danh.", "error"); 
+                return; 
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user, password: pass })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('loginScreen').classList.add('hidden');
+                    document.getElementById('appWorkspace').classList.remove('hidden');
+                    
+                    // Gắn nhãn chức vụ lên giao diện
+                    let roleDisplay = "Nhân Viên";
+                    if(data.user.role === 'admin') roleDisplay = "Quản Trị Viên";
+                    if(data.user.role === 'manager') roleDisplay = "Quản Lý";
+document.getElementById('displayName').innerHTML = `<span class="truncate w-full">${data.user.name}</span> <span class="text-[9px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-md font-semibold border border-indigo-500/20">${roleDisplay}</span>`;
+                    // LƯU ROLE VÀ ÁP DỤNG PHÂN QUYỀN
+                    localStorage.setItem('userRole', data.user.role || 'employee');
+                    applyRoleRestrictions(data.user.role || 'employee');
+
+                    if (remember) {
+                        localStorage.setItem('savedUser', user);
+                        localStorage.setItem('savedPass', pass);
+                    } else {
+                        localStorage.removeItem('savedUser');
+                        localStorage.removeItem('savedPass');
+                    }
+
+                    let lastTab = localStorage.getItem('activeTab') || 'studio';
+                    // Nếu nhân viên mà đòi vào tab cấm thì đá về studio
+                    if (data.user.role === 'employee' && (lastTab === 'trash' || lastTab === 'users')) lastTab = 'studio';
+                    if (data.user.role === 'manager' && lastTab === 'users') lastTab = 'studio';
+                    
+                    switchTab(lastTab);
+
+                    if(!isAuto) showToast(`Xin chào ${data.user.name}, chúc một ngày làm việc hiệu quả!`, 'success');
+                } else {
+                    if(!isAuto) showToast("Thông tin định danh không hợp lệ.", 'error');
+                }
+            } catch (error) {
+                if(!isAuto) showToast("Mất kết nối với hệ thống trung tâm.", "error");
+            }
+        };
+
+        window.logout = function() {
+            localStorage.removeItem('savedUser');
+            localStorage.removeItem('savedPass');
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('activeTab'); 
+            document.getElementById('usernameInput').value = '';
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('rememberMe').checked = false;
+            
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('appWorkspace').classList.add('hidden');
+            showToast("Đã ngắt kết nối phiên làm việc.", "success");
+        };
+
+        window.onload = async () => {
+            const savedUser = localStorage.getItem('savedUser');
+            const savedPass = localStorage.getItem('savedPass');
+            if (savedUser && savedPass) {
+                document.getElementById('usernameInput').value = savedUser;
+                document.getElementById('passwordInput').value = savedPass;
+                document.getElementById('rememberMe').checked = true;
+                await loginProcess(true);
+            }
+
+            if(sessionStorage.getItem('savedPrompt')) promptInput.value = sessionStorage.getItem('savedPrompt');
+            if(sessionStorage.getItem('savedCount')) countInput.value = sessionStorage.getItem('savedCount');
+            if(sessionStorage.getItem('savedScripts')) {
+                generatedScripts = JSON.parse(sessionStorage.getItem('savedScripts'));
+                if(generatedScripts.length > 0) renderCards();
+            }
+            if(sessionStorage.getItem('savedFiles')) {
+                attachedFiles = JSON.parse(sessionStorage.getItem('savedFiles'));
+                updateFileListUI();
+            }
+        };
+
+        // ================= XỬ LÝ KHO LƯU TRỮ VÀ THÙNG RÁC DỰA THEO ROLE =================
+        document.getElementById('vaultDatePicker').addEventListener('change', (e) => loadVaultData(e.target.value));
+
+        window.loadVaultData = async function(dateStr) {
+            const vaultGrid = document.getElementById('vaultGrid');
+            if(!vaultGrid) return;
+            vaultGrid.innerHTML = '<div class="col-span-full text-center py-20"><svg class="animate-spin w-8 h-8 text-indigo-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><p class="text-slate-400 text-sm font-medium">Đang đồng bộ dữ liệu thư viện...</p></div>';
+            
+            const role = localStorage.getItem('userRole') || 'employee';
+
+            try {
+                const docRef = window.doc(window.db, "vault_matrix", dateStr);
+                const docSnap = await window.getDoc(docRef);
+                
+                if (docSnap.exists() && docSnap.data().scripts && docSnap.data().scripts.length > 0) {
+                    currentVaultScripts = docSnap.data().scripts;
+                    vaultGrid.innerHTML = '';
+                    currentVaultScripts.forEach((script, idx) => {
+                        const meta = script.script_meta || script;
+                        
+                        // Nếu là Admin hoặc Quản lý thì mới hiện nút Xóa (Gỡ bỏ)
+                        const deleteHtml = (role === 'admin' || role === 'manager') 
+                            ? `<button onclick="moveToTrash(${idx}, '${dateStr}')" class="text-sm font-semibold text-slate-500 hover:text-red-400 transition-colors">Gỡ bỏ</button>`
+                            : '';
+
+                        vaultGrid.innerHTML += `
+                            <div class="glass-panel bg-slate-900/60 rounded-2xl p-6 flex flex-col justify-between group hover:border-indigo-500/40 transition-all shadow-xl hover:shadow-indigo-500/10">
+                                <div>
+                                    <div class="flex justify-between items-start mb-3">
+                                        <span class="px-2.5 py-1 bg-indigo-500/10 text-indigo-400 text-[10px] font-bold rounded uppercase tracking-wider">${meta.concept || 'Tác phẩm'}</span>
+                                        <span class="text-[11px] text-slate-500 font-medium">${script.render_time || ''}</span>
+                                    </div>
+                                    <h4 class="text-lg font-bold text-white mb-2 line-clamp-2 leading-snug group-hover:text-indigo-300 transition-colors">${meta.title || 'Bản thảo chưa đặt tên'}</h4>
+                                    <p class="text-sm text-slate-400 line-clamp-3 leading-relaxed mb-5">"${meta.full_story_summary || meta.hook_summary || 'Nội dung đang được tóm tắt...'}"</p>
+                                </div>
+                                <div class="flex justify-between border-t border-white/[0.05] pt-4 mt-auto">
+                                    <button onclick="viewDataScript(currentVaultScripts[${idx}])" class="text-sm font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1.5 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                        Đọc kịch bản
+                                    </button>
+                                    ${deleteHtml}
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    vaultGrid.innerHTML = '<div class="col-span-full text-center py-20 bg-white/[0.01] rounded-2xl border border-white/[0.05] border-dashed"><p class="text-slate-500 font-medium">Chưa có tác phẩm nào được lưu trữ trong ngày này.</p></div>';
+                }
+            } catch(e) {
+                vaultGrid.innerHTML = `<p class="text-red-400 col-span-full text-center py-10 bg-red-500/10 rounded-xl">Gián đoạn đồng bộ: ${e.message}</p>`;
+            }
+        }
+
+        window.moveToTrash = async function(idx, dateStr) {
+            try {
+                const scriptToTrash = currentVaultScripts[idx];
+                scriptToTrash.originalDate = dateStr;
+                currentVaultScripts.splice(idx, 1);
+                await window.setDoc(window.doc(window.db, "vault_matrix", dateStr), { scripts: currentVaultScripts });
+
+                const trashRef = window.doc(window.db, "trash_matrix", "bin");
+                const trashSnap = await window.getDoc(trashRef);
+                let trashScripts = trashSnap.exists() ? (trashSnap.data().scripts || []) : [];
+                trashScripts.push(scriptToTrash);
+                await window.setDoc(trashRef, { scripts: trashScripts });
+
+                showToast("Đã chuyển tác phẩm vào khu vực tạm xóa.", "success");
+                loadVaultData(dateStr);
+            } catch(e) { showToast("Không thể thao tác: " + e.message, "error"); }
+        }
+
+        window.loadTrashData = async function() {
+            const trashGrid = document.getElementById('trashGrid');
+            if(!trashGrid) return;
+            const role = localStorage.getItem('userRole');
+
+            try {
+                const docSnap = await window.getDoc(window.doc(window.db, "trash_matrix", "bin"));
+                if (docSnap.exists() && docSnap.data().scripts && docSnap.data().scripts.length > 0) {
+                    currentTrashScripts = docSnap.data().scripts;
+                    trashGrid.innerHTML = '';
+                    currentTrashScripts.forEach((script, idx) => {
+                        const meta = script.script_meta || script;
+                        
+                        // Chỉ có Admin mới được xóa vĩnh viễn
+                        const permaDeleteHtml = (role === 'admin')
+                            ? `<button onclick="permaDelete(${idx})" class="text-sm font-semibold text-red-500 hover:text-red-400 transition-colors">Xóa vĩnh viễn</button>`
+                            : '';
+
+                        trashGrid.innerHTML += `
+                            <div class="glass-panel bg-slate-900/40 border-red-500/20 rounded-2xl p-6 flex flex-col justify-between group hover:border-red-500/40 transition-all opacity-80 hover:opacity-100">
+                                <div>
+                                    <div class="flex justify-between items-start mb-3">
+                                        <span class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Gốc: ${script.originalDate || 'Chưa rõ'}</span>
+                                    </div>
+                                    <h4 class="text-base font-semibold text-slate-500 line-through mb-1">${meta.title || 'Bản thảo chưa đặt tên'}</h4>
+                                </div>
+                                <div class="flex justify-between border-t border-white/[0.05] pt-4 mt-6">
+                                    <button onclick="restoreFromTrash(${idx})" class="text-sm font-semibold text-emerald-500 hover:text-emerald-400 transition-colors">Khôi phục</button>
+                                    ${permaDeleteHtml}
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    trashGrid.innerHTML = '<div class="col-span-full text-center py-20 bg-white/[0.01] rounded-2xl border border-white/[0.05] border-dashed"><p class="text-slate-500 font-medium">Khu vực lưu trữ tạm thời đang trống.</p></div>';
+                }
+            } catch(e) { console.log(e); }
+        }
+
+        window.restoreFromTrash = async function(idx) {
+            try {
+                const scriptToRestore = currentTrashScripts[idx];
+                const targetDate = scriptToRestore.originalDate || new Date().toISOString().split('T')[0];
+                currentTrashScripts.splice(idx, 1);
+                await window.setDoc(window.doc(window.db, "trash_matrix", "bin"), { scripts: currentTrashScripts });
+
+                const vaultRef = window.doc(window.db, "vault_matrix", targetDate);
+                const vaultSnap = await window.getDoc(vaultRef);
+                let vaultScripts = vaultSnap.exists() ? (vaultSnap.data().scripts || []) : [];
+                vaultScripts.push(scriptToRestore);
+                await window.setDoc(vaultRef, { scripts: vaultScripts });
+
+                showToast("Đã khôi phục thành công về Thư Viện.", "success");
+                loadTrashData();
+            } catch(e) { showToast("Quá trình khôi phục gián đoạn.", "error"); }
+        }
+
+        window.permaDelete = async function(idx) {
+            if(!confirm("Xác nhận hủy dữ liệu này vĩnh viễn khỏi hệ thống lưu trữ đám mây? Hành động này không thể hoàn tác.")) return;
+            currentTrashScripts.splice(idx, 1);
+            await window.setDoc(window.doc(window.db, "trash_matrix", "bin"), { scripts: currentTrashScripts });
+            showToast("Đã hủy bỏ dữ liệu an toàn.", "success");
+            loadTrashData();
+        }
+
+        window.bulkDeleteVault = async function() {
+            const dateStr = document.getElementById('vaultDatePicker').value;
+            if(!confirm(`Bạn muốn chuyển toàn bộ tài liệu ngày ${dateStr} vào danh sách chờ xóa?`)) return;
+            try {
+                const trashRef = window.doc(window.db, "trash_matrix", "bin");
+                const trashSnap = await window.getDoc(trashRef);
+                let trashScripts = trashSnap.exists() ? (trashSnap.data().scripts || []) : [];
+                
+                currentVaultScripts.forEach(s => s.originalDate = dateStr);
+                trashScripts = [...trashScripts, ...currentVaultScripts];
+                
+                await window.setDoc(trashRef, { scripts: trashScripts });
+                await window.setDoc(window.doc(window.db, "vault_matrix", dateStr), { scripts: [] });
+
+                showToast(`Đã dọn dẹp không gian lưu trữ ngày ${dateStr}.`, "success");
+                loadVaultData(dateStr);
+            } catch(e) {}
+        }
+
+        window.emptyTrashConfirm = async function() {
+            if(!confirm("YÊU CẦU QUẢN TRỊ: Xóa vĩnh viễn toàn bộ dữ liệu trong thư mục này? Không thể hoàn tác.")) return;
+            await window.setDoc(window.doc(window.db, "trash_matrix", "bin"), { scripts: [] });
+            showToast("Đã giải phóng không gian lưu trữ.", "success");
+            loadTrashData();
+        }
+
+        // ================= GIAO TIẾP VỚI API NHÂN SỰ CỦA NODE.JS =================
+        window.loadUsersList = async function() {
+            try {
+                const response = await fetch('http://localhost:3000/api/users');
+                const result = await response.json();
+                
+                if(result.success) {
+                    const grid = document.getElementById('usersGrid');
+                    grid.innerHTML = '';
+                    const users = result.data;
+                    
+                    for (const [username, info] of Object.entries(users)) {
+                        let roleBadge = '<span class="px-2 py-0.5 bg-slate-800 text-slate-300 text-xs rounded border border-slate-700">Nhân viên</span>';
+                        if(info.role === 'admin') roleBadge = '<span class="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs rounded border border-red-500/30 font-bold">Admin</span>';
+                        if(info.role === 'manager') roleBadge = '<span class="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded border border-blue-500/30 font-bold">Quản lý</span>';
+
+                        const deleteBtn = (username !== 'admin') 
+                            ? `<button onclick="deleteSystemUser('${username}')" class="text-xs text-red-400 hover:text-red-300 font-semibold mt-3">Thu hồi quyền</button>`
+                            : `<p class="text-xs text-slate-600 mt-3 italic">Không thể thu hồi</p>`;
+
+                        grid.innerHTML += `
+                            <div class="glass-panel p-5 rounded-2xl border border-slate-700/50">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-lg">${info.icon || '👤'}</div>
+                                        <div>
+                                            <h4 class="text-white font-bold">${info.name}</h4>
+                                            <p class="text-xs text-slate-400">ID: ${username}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-4 flex items-center justify-between border-t border-slate-800/50 pt-3">
+                                    ${roleBadge}
+                                    ${deleteBtn}
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+            } catch(e) {
+                showToast("Không thể tải danh sách nhân sự.", "error");
+            }
+        }
+
+        window.createNewUser = async function() {
+            const newUsername = document.getElementById('newUserId').value.trim();
+            const newName = document.getElementById('newUserName').value.trim();
+            const newPass = document.getElementById('newUserPass').value.trim();
+            const role = document.getElementById('newUserRole').value;
+
+            if(!newUsername || !newName || !newPass) {
+                showToast("Vui lòng điền đủ thông tin tài khoản.", "error"); return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/api/users', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ newUsername, newPass, newName, role })
+                });
+                const result = await response.json();
+                
+                if(result.success) {
+                    showToast("Đã cấp phát tài khoản thành công!", "success");
+                    document.getElementById('newUserId').value = '';
+                    document.getElementById('newUserName').value = '';
+                    document.getElementById('newUserPass').value = '';
+                    loadUsersList();
+                } else {
+                    showToast(result.message, "error");
+                }
+            } catch(e) {
+                showToast("Lỗi kết nối máy chủ.", "error");
+            }
+        }
+
+      window.deleteSystemUser = function(username) {
+            showConfirm(
+                "Cảnh báo bảo mật", 
+                `Bạn đang thực hiện thu hồi vĩnh viễn quyền truy cập của nhân sự: ${username}. Hành động này không thể hoàn tác.`, 
+                async () => {
+                    try {
+                        const response = await fetch(`http://localhost:3000/api/users/${username}`, { method: 'DELETE' });
+                        const result = await response.json();
+                        if(result.success) {
+                            showToast(`Đã thu hồi tài khoản ${username}.`, "success");
+                            loadUsersList();
+                        } else {
+                            showToast(result.message, "error");
+                        }
+                    } catch(e) { showToast("Lỗi kết nối máy chủ.", "error"); }
+                }
+            );
+        }
+
+        // ================= CÁC HÀM XỬ LÝ KHÁC (GIỮ NGUYÊN) =================
+        window.viewDataScript = function(script) {
+            const meta = script.script_meta || script;
+            const scenes = script.storyboard || script.scenes || [];
+            document.getElementById('modalTitle').innerText = meta.title || 'Bản Thảo Chưa Rõ Tên';
+            document.getElementById('modalConcept').innerText = meta.concept || 'Tiêu chuẩn';
+            document.getElementById('modalSummary').innerText = meta.full_story_summary || 'Đang cập nhật tóm tắt nội dung...';
+            const tbody = document.getElementById('modalTbody');
+            tbody.innerHTML = '';
+            scenes.forEach((scene, i) => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-white/[0.02] transition-colors border-b border-white/[0.02] group">
+                        <td class="p-5 text-center font-bold text-slate-500 group-hover:text-indigo-400 transition-colors">${scene.scene_number || i+1}</td>
+                        <td class="p-5 text-indigo-300 font-medium text-sm leading-relaxed">${scene.camera_lighting || scene.camera || '-'}</td>
+                        <td class="p-5 text-slate-200 text-sm leading-relaxed">${scene.visual_action || scene.action || '-'}</td>
+                        <td class="p-5 text-amber-100/80 text-sm italic leading-relaxed">${scene.audio_dialogue || scene.audio || '-'}</td>
+                        <td class="p-5 text-center text-sm font-medium text-slate-500">${scene.duration_seconds || scene.duration || '-'}s</td>
+                    </tr>
+                `;
+            });
+            document.getElementById('scriptModal').classList.remove('hidden');
+
+            document.getElementById('downloadBtn').onclick = () => {
+                let content = `🎥 TÁC PHẨM ĐIỆN ẢNH: ${meta.title || 'Bản Thảo'}\n🎬 Định dạng & Phong cách: ${meta.concept || 'Chưa xác định'}\n=========================================\n\n`;
+                scenes.forEach((s, i) => {
+                    content += `[CẢNH ${s.scene_number || i+1}] - Thời lượng ước tính: ${s.duration_seconds || s.duration || ''}s\n🎥 CHỈ ĐẠO HÌNH ẢNH: ${s.camera_lighting || s.camera || ''}\n🏃 DIỄN BIẾN HÀNH ĐỘNG: ${s.visual_action || s.action || ''}\n🔊 ÂM THANH & LỜI THOẠI: ${s.audio_dialogue || s.audio || ''}\n-----------------------------------------\n\n`;
+                });
+                const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `Kich_ban_${meta.title || 'Director_Pro'}.txt`; a.click();
+            };
+        }
+
+        optimizeBtn.addEventListener('click', async () => {
+            const topic = promptInput.value;
+            const checkedTones = Array.from(document.querySelectorAll('.tone-checkbox:checked')).map(cb => cb.value).join(", ");
+            const tone = checkedTones || "Cân bằng, ngôn từ chính thống";
+            if (!topic) { showToast("Vui lòng cung cấp nội dung sơ bộ cần xử lý.", 'error'); return; }
+            optimizeBtn.innerHTML = `<svg class="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Đang tinh chỉnh...`;
+            optimizeBtn.disabled = true;
+            try {
+                const response = await fetch('http://localhost:3000/api/optimize-prompt', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topic, tones: tone })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    promptInput.value = result.data; 
+                    sessionStorage.setItem('savedPrompt', promptInput.value);
+                    showToast("Đã tối ưu hóa ngôn từ chuyên nghiệp.", 'success');
+                } else { showToast("Gián đoạn quá trình xử lý văn bản.", 'error'); }
+            } catch (error) { showToast("Kết nối máy chủ bị từ chối.", 'error'); } 
+            finally {  
+                optimizeBtn.innerHTML = `<svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> Tinh Chỉnh Lời Văn Hợp Lệ Trước Khi Chạy`;
+                optimizeBtn.disabled = false;
+            }
+        });
+
+        renderBtn.addEventListener('click', async () => {
+            let topic = promptInput.value;
+            const count = countInput.value;
+            const format = document.getElementById('formatSelect').value;
+            const checkedTones = Array.from(document.querySelectorAll('.tone-checkbox:checked')).map(cb => cb.value).join(", ");
+            const tone = checkedTones || "Cân bằng, ngôn từ chính thống";
+
+            if (!topic && attachedFiles.length === 0) { showToast("Vui lòng cung cấp chất liệu sáng tạo cốt lõi.", 'error'); return; }
+            if(attachedFiles.length > 0) topic += `\n\n(Dữ liệu file đính kèm: ${attachedFiles.join(', ')})`;
+
+            renderBtn.innerHTML = `<svg class="animate-spin w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Đang khởi tạo...`;
+            renderBtn.disabled = true;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/generate-scripts', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topic, count, tones: tone, format: format })
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    let newScripts = Array.isArray(result.data) ? result.data : [result.data];
+                    if(newScripts.length && !newScripts[0].title && !newScripts[0].script_meta) {
+                       let keys = Object.keys(newScripts[0]);
+                       if(Array.isArray(newScripts[0][keys[0]])) newScripts = newScripts[0][keys[0]];
+                    }
+
+                    const now = new Date();
+                    const timeStr = now.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) + ' | ' + now.toLocaleDateString('vi-VN');
+                    newScripts.forEach(s => s.render_time = timeStr);
+
+                    generatedScripts = [...newScripts, ...generatedScripts];
+                    sessionStorage.setItem('savedScripts', JSON.stringify(generatedScripts));
+                    
+                    renderCards();
+                    showToast(`Quá trình sáng tạo hoàn tất. Đã xuất bản ${count} kịch bản.`, 'success');
+
+                    try {
+                        if(window.db && window.doc) {
+                            const targetDate = new Date().toISOString().split('T')[0];
+                            const docRef = window.doc(window.db, "vault_matrix", targetDate);
+                            const docSnap = await window.getDoc(docRef);
+                            let existing = docSnap.exists() ? docSnap.data().scripts || [] : [];
+                            await window.setDoc(docRef, { scripts: [...newScripts, ...existing] });
+                        }
+                    } catch(fbErr) { console.log("Lưu nền thất bại:", fbErr); }
+
+                } else { showToast("Sự cố quy trình: " + result.message, 'error'); }
+            } catch (error) { showToast("Phân hệ xử lý trung tâm không phản hồi.", 'error'); }
+            finally {
+                renderBtn.innerHTML = `Khởi Tạo Kịch Bản`;
+                renderBtn.disabled = false;
+            }
+        });
+
+        fileUpload.addEventListener('change', function() {
+            Array.from(this.files).forEach(file => {
+                if(!attachedFiles.includes(file.name)) attachedFiles.push(file.name);
+            });
+            sessionStorage.setItem('savedFiles', JSON.stringify(attachedFiles));
+            updateFileListUI();
+        });
+
+        function updateFileListUI() {
+            if(attachedFiles.length > 0) {
+                fileList.classList.remove('hidden');
+                fileList.innerHTML = attachedFiles.map((name, index) => `
+                    <div class="flex justify-between items-center bg-slate-900/50 p-3 rounded-xl border border-slate-700/50">
+                        <span class="text-sm font-medium text-slate-300 flex items-center gap-2">
+                            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            ${name}
+                        </span>
+                        <button onclick="removeFile(${index})" class="text-slate-500 hover:text-red-400 text-sm font-semibold transition-colors">Gỡ bỏ</button>
+                    </div>
+                `).join('');
+            } else { fileList.classList.add('hidden'); }
+        }
+
+        window.removeFile = function(index) {
+            attachedFiles.splice(index, 1);
+            sessionStorage.setItem('savedFiles', JSON.stringify(attachedFiles));
+            updateFileListUI();
+        }
+
+        function renderCards() {
+            cardsGrid.className = "grid grid-cols-1 md:grid-cols-2 gap-5";
+            cardsGrid.innerHTML = '';
+            generatedScripts.forEach((script, index) => {
+                const meta = script.script_meta || script; 
+                const title = meta.title || `Bản Thảo Đang Xử Lý`;
+                const concept = meta.concept || "Chưa phân loại";
+                const hook = meta.hook_summary || meta.full_story_summary || "Đang hiển thị tóm tắt nội dung...";
+                const time = script.render_time || new Date().toLocaleTimeString('vi-VN');
+                const stt = generatedScripts.length - index;
+
+                cardsGrid.innerHTML += `
+                    <div onclick="viewDataScript(generatedScripts[${index}])" class="glass-panel rounded-2xl p-6 cursor-pointer group transition-all duration-300 hover:border-indigo-500/50 hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-1 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-3xl group-hover:bg-indigo-500/20 transition-colors"></div>
+                        <div class="relative z-10">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold text-sm">
+                                    ${stt}
+                                </div>
+                                <span class="px-2.5 py-1 bg-slate-800/50 text-slate-300 text-[10px] font-bold rounded uppercase tracking-wider border border-slate-700/50">${concept}</span>
+                                <span class="text-[11px] text-slate-500 font-medium ml-auto">${time}</span>
+                            </div>
+                            <h4 class="text-lg font-bold text-white mb-2 leading-snug group-hover:text-indigo-300 transition-colors">${title}</h4>
+                            <p class="text-sm text-slate-400 line-clamp-2 leading-relaxed italic">"${hook}"</p>
+                        </div>
+                    </div>
+                `;
+            });
+            resultsArea.classList.remove('hidden');
+        }
+
+        promptInput.addEventListener('input', () => sessionStorage.setItem('savedPrompt', promptInput.value));
+        countInput.addEventListener('input', () => sessionStorage.setItem('savedCount', countInput.value));
+    </script>
+</body>
+</html>
